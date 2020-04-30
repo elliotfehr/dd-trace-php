@@ -49,7 +49,8 @@ static ddtrace_dispatch_t *_dd_find_method_dispatch(zend_class_entry *class, zva
         }
     }
 
-    return class->parent ? _dd_find_method_dispatch(class->parent, fname TSRMLS_CC) : NULL;
+    // What will break if we don't trace parents?
+    return NULL;
 }
 
 ddtrace_dispatch_t *ddtrace_find_dispatch(zend_class_entry *scope, zval *fname TSRMLS_DC) {

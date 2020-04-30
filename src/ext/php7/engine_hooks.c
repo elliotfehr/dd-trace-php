@@ -57,7 +57,7 @@ static zval *_dd_this(zend_execute_data *call) {
 
 #define DDTRACE_NOT_TRACED ((void *)1)
 
-static bool _dd_should_trace_helper(zend_execute_data *call, zend_function *fbc, ddtrace_dispatch_t **dispatch) {
+static bool _dd_should_trace_helper(zend_function *fbc, ddtrace_dispatch_t **dispatch) {
     if (DDTRACE_G(class_lookup) == NULL || DDTRACE_G(function_lookup) == NULL) {
         return false;
     }
@@ -69,8 +69,6 @@ static bool _dd_should_trace_helper(zend_execute_data *call, zend_function *fbc,
 
     zval fname;
     ZVAL_STR(&fname, fbc->common.function_name);
-
-    zval *this = _dd_this(call);
 
     /* TODO: we can possibly grab the lowercased variants off the opline.
      * Levi: Do we store the function and method names lowered in the oplines
@@ -84,7 +82,7 @@ static bool _dd_should_trace_helper(zend_execute_data *call, zend_function *fbc,
      *
      * It would avoid lowering the string and reduce memory churn; win-win.
      */
-    *dispatch = ddtrace_find_dispatch(this ? Z_OBJCE_P(this) : fbc->common.scope, &fname);
+    *dispatch = ddtrace_find_dispatch(fbc->common.scope, &fname);
     return *dispatch;
 }
 
@@ -103,7 +101,7 @@ static bool _dd_should_trace_runtime(ddtrace_dispatch_t *dispatch) {
     return true;
 }
 
-static bool _dd_should_trace_call(zend_execute_data *call, zend_function *fbc, ddtrace_dispatch_t **dispatch) {
+static bool _dd_should_trace_call(zend_function *fbc, ddtrace_dispatch_t **dispatch) {
     if (DDTRACE_G(disable_in_current_request)) {
         return false;
     }
@@ -133,7 +131,7 @@ static bool _dd_should_trace_call(zend_execute_data *call, zend_function *fbc, d
         }
 #endif
 
-        if (!_dd_should_trace_helper(call, fbc, dispatch)) {
+        if (!_dd_should_trace_helper(fbc, dispatch)) {
 #if PHP_VERSION_ID < 70400
             fbc->op_array.reserved[ddtrace_resource] = DDTRACE_NOT_TRACED;
 #else
@@ -148,14 +146,14 @@ static bool _dd_should_trace_call(zend_execute_data *call, zend_function *fbc, d
         if (fbc->op_array.reserved[ddtrace_resource] == DDTRACE_NOT_TRACED) {
             return false;
         }
-        if (!_dd_should_trace_helper(call, fbc, dispatch)) {
+        if (!_dd_should_trace_helper(fbc, dispatch)) {
             fbc->op_array.reserved[ddtrace_resource] = DDTRACE_NOT_TRACED;
             return false;
         }
         return _dd_should_trace_runtime(*dispatch);
     }
 #endif
-    return _dd_should_trace_helper(call, fbc, dispatch) && _dd_should_trace_runtime(*dispatch);
+    return _dd_should_trace_helper(fbc, dispatch) && _dd_should_trace_runtime(*dispatch);
 }
 
 #define _DD_TRACE_COPY_NULLABLE_ARG(q)      \
@@ -297,7 +295,7 @@ static bool _dd_execute_tracing_closure(zval *callable, zval *span_data, zend_ex
     fcc.initialized = 1;
 #endif
     fcc.object = this ? Z_OBJ_P(this) : NULL;
-    fcc.called_scope = zend_get_called_scope(call);
+    fcc.called_scope = call->func->common.scope;
     // Give the tracing closure access to private & protected class members
     fcc.function_handler->common.scope = fcc.called_scope;
 
@@ -617,8 +615,7 @@ neighboring extension could have incremented the opline before forwarding the ha
 */
 static int _dd_do_icall_handler(zend_execute_data *execute_data) {
     ddtrace_dispatch_t *dispatch = NULL;
-    if (ZEND_DO_ICALL != EX(opline)->opcode || !EX(call)->func ||
-        !_dd_should_trace_call(EX(call), EX(call)->func, &dispatch)) {
+    if (ZEND_DO_ICALL != EX(opline)->opcode || !EX(call)->func || !_dd_should_trace_call(EX(call)->func, &dispatch)) {
         return _prev_icall_handler ? _prev_icall_handler(execute_data) : ZEND_USER_OPCODE_DISPATCH;
     }
     if (dispatch->options & DDTRACE_DISPATCH_INNERHOOK) {
@@ -630,8 +627,7 @@ static int _dd_do_icall_handler(zend_execute_data *execute_data) {
 
 static int _dd_do_ucall_handler(zend_execute_data *execute_data) {
     ddtrace_dispatch_t *dispatch = NULL;
-    if (ZEND_DO_UCALL != EX(opline)->opcode || !EX(call)->func ||
-        !_dd_should_trace_call(EX(call), EX(call)->func, &dispatch)) {
+    if (ZEND_DO_UCALL != EX(opline)->opcode || !EX(call)->func || !_dd_should_trace_call(EX(call)->func, &dispatch)) {
         return _prev_ucall_handler ? _prev_ucall_handler(execute_data) : ZEND_USER_OPCODE_DISPATCH;
     }
     if (dispatch->options & DDTRACE_DISPATCH_INNERHOOK) {
@@ -643,8 +639,7 @@ static int _dd_do_ucall_handler(zend_execute_data *execute_data) {
 
 static int _dd_do_fcall_handler(zend_execute_data *execute_data) {
     ddtrace_dispatch_t *dispatch = NULL;
-    if (ZEND_DO_FCALL != EX(opline)->opcode || !EX(call)->func ||
-        !_dd_should_trace_call(EX(call), EX(call)->func, &dispatch)) {
+    if (ZEND_DO_FCALL != EX(opline)->opcode || !EX(call)->func || !_dd_should_trace_call(EX(call)->func, &dispatch)) {
         return _prev_fcall_handler ? _prev_fcall_handler(execute_data) : ZEND_USER_OPCODE_DISPATCH;
     }
     if (dispatch->options & DDTRACE_DISPATCH_INNERHOOK) {
@@ -657,7 +652,7 @@ static int _dd_do_fcall_handler(zend_execute_data *execute_data) {
 static int _dd_do_fcall_by_name_handler(zend_execute_data *execute_data) {
     ddtrace_dispatch_t *dispatch = NULL;
     if (ZEND_DO_FCALL_BY_NAME != EX(opline)->opcode || !EX(call)->func ||
-        !_dd_should_trace_call(EX(call), EX(call)->func, &dispatch)) {
+        !_dd_should_trace_call(EX(call)->func, &dispatch)) {
         return _prev_fcall_by_name_handler ? _prev_fcall_by_name_handler(execute_data) : ZEND_USER_OPCODE_DISPATCH;
     }
     if (dispatch->options & DDTRACE_DISPATCH_INNERHOOK) {
@@ -947,7 +942,7 @@ static void _dd_execute_internal(zend_execute_data *execute_data, zval *return_v
         return;
     }
     ddtrace_dispatch_t *dispatch = NULL;
-    if (!_dd_should_trace_call(execute_data, current_fbc, &dispatch)) {
+    if (!_dd_should_trace_call(current_fbc, &dispatch)) {
         _prev_execute_internal(execute_data, return_value);
         return;
     }

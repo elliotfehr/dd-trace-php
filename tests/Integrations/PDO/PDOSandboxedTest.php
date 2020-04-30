@@ -92,7 +92,7 @@ final class PDOSandboxedTest extends PDOTest
                 'PDO.prepare',
                 'PDO',
                 'sql',
-                'object(DDTrace\Tests\Integrations\PDO\BrokenPDOStatement)#' . $objId
+                $query
             )->withExactTags(SpanAssertion::NOT_TESTED),
             SpanAssertion::build(
                 'PDOStatement.execute',
