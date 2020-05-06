@@ -295,7 +295,7 @@ static bool _dd_execute_tracing_closure(zval *callable, zval *span_data, zend_ex
     fcc.initialized = 1;
 #endif
     fcc.object = this ? Z_OBJ_P(this) : NULL;
-    fcc.called_scope = call->func->common.scope;
+    fcc.called_scope = zend_get_called_scope(call);
     // Give the tracing closure access to private & protected class members
     fcc.function_handler->common.scope = fcc.called_scope;
 

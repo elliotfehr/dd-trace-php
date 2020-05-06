@@ -55,5 +55,4 @@ echo $bar->myDoStuff() . "\n";
 [foo] 0
 **TRACED**
 [parent] 6
-**TRACED**
 BAR 12 {mine}

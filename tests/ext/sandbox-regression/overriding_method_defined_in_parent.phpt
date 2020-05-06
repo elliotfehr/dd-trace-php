@@ -19,7 +19,7 @@ class Test extends Ancestor{
 }
 
 $no = 1;
-dd_trace_method("Test", "m", function($s, $a, $retval) use ($no){
+dd_trace_method("Ancestor", "m", function($s, $a, $retval) use ($no){
     echo "HOOK " .  $retval . ' ' . $no . PHP_EOL;
 });
 

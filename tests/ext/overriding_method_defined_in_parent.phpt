@@ -17,7 +17,7 @@ class Test extends Ancestor{
 }
 
 $no = 1;
-dd_trace("Test", "m", function() use ($no){
+dd_trace("Ancestor", "m", function() use ($no){
     return "HOOK " .  $this->m() . ' ' . $no . PHP_EOL;
 });
 
