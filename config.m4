@@ -68,6 +68,7 @@ if test "$PHP_DDTRACE" != "no"; then
       src/ext/php7/dispatch.c \
       src/ext/php7/engine_api.c \
       src/ext/php7/engine_hooks.c \
+      src/ext/php7/handlers_common.c \
       src/ext/php7/handlers_curl.c \
     "
   else

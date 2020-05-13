@@ -101,6 +101,8 @@
                         <file name="engine_api.c" role="src" />
                         <file name="engine_api.h" role="src" />
                         <file name="engine_hooks.c" role="src" />
+                        <file name="handlers_common.c" role="src" />
+                        <file name="handlers_common.h" role="src" />
                         <file name="handlers_curl.c" role="src" />
                     </dir>
                     <dir name="third-party">

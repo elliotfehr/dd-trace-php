@@ -7,6 +7,7 @@
 #include "configuration.h"
 #include "engine_api.h"
 #include "engine_hooks.h"  // for ddtrace_backup_error_handling
+#include "handlers_common.h"
 
 #ifndef ZVAL_COPY_DEREF
 #define ZVAL_COPY_DEREF(z, v)                     \
@@ -37,12 +38,10 @@ ZEND_TLS int le_curl = 0;
 ZEND_TLS zval _dd_curl_httpheaders = {.u1.type_info = IS_UNDEF};
 ZEND_TLS zval _dd_format_curl_http_headers = {.u1.type_info = IS_UNDEF};
 ZEND_TLS zend_class_entry *_dd_ArrayKVStore_ce = NULL;
-ZEND_TLS zend_class_entry *_dd_GlobalTracer_ce = NULL;
 ZEND_TLS zend_class_entry *_dd_SpanContext_ce = NULL;
 ZEND_TLS zend_function *_dd_ArrayKVStore_putForResource_fe = NULL;
 ZEND_TLS zend_function *_dd_ArrayKVStore_getForResource_fe = NULL;
 ZEND_TLS zend_function *_dd_ArrayKVStore_deleteResource_fe = NULL;
-ZEND_TLS zend_function *_dd_GlobalTracer_get_fe = NULL;
 ZEND_TLS zend_function *_dd_SpanContext_ctor = NULL;
 ZEND_TLS bool _dd_curl_integration_loaded = false;
 
@@ -64,10 +63,9 @@ static bool _dd_load_curl_integration(void) {
     }
 
     _dd_ArrayKVStore_ce = ddtrace_lookup_ce(ZEND_STRL("DDTrace\\Util\\ArrayKVStore"));
-    _dd_GlobalTracer_ce = ddtrace_lookup_ce(ZEND_STRL("DDTrace\\GlobalTracer"));
     _dd_SpanContext_ce = ddtrace_lookup_ce(ZEND_STRL("DDTrace\\SpanContext"));
 
-    if (!_dd_ArrayKVStore_ce || !_dd_GlobalTracer_ce || !_dd_SpanContext_ce) {
+    if (!_dd_ArrayKVStore_ce || !_dd_SpanContext_ce) {
         return false;
     }
 
@@ -192,9 +190,7 @@ static ZEND_RESULT_CODE _dd_span_context_new(zval *dest, zval trace_id, zval spa
 // headers will get modified!
 static ZEND_RESULT_CODE _dd_tracer_inject_helper(zval *headers, zval *format, ddtrace_span_t *span) {
     zval tracer;
-    // $tracer = \DDTrace\GlobalTracer::get();
-    if (ddtrace_call_method(NULL, _dd_GlobalTracer_ce, &_dd_GlobalTracer_get_fe, ZEND_STRL("get"), &tracer, 0, NULL) ==
-        FAILURE) {
+    if (ddtrace_GlobalTracer_get(&tracer) == FAILURE) {
         return FAILURE;
     }
 
@@ -424,12 +420,10 @@ void ddtrace_curl_handlers_rshutdown(void) {
     ZVAL_UNDEF(&_dd_curl_httpheaders);
     ZVAL_UNDEF(&_dd_format_curl_http_headers);
     _dd_ArrayKVStore_ce = NULL;
-    _dd_GlobalTracer_ce = NULL;
     _dd_SpanContext_ce = NULL;
     _dd_ArrayKVStore_putForResource_fe = NULL;
     _dd_ArrayKVStore_getForResource_fe = NULL;
     _dd_ArrayKVStore_deleteResource_fe = NULL;
-    _dd_GlobalTracer_get_fe = NULL;
     _dd_SpanContext_ctor = NULL;
     _dd_curl_integration_loaded = false;
 }

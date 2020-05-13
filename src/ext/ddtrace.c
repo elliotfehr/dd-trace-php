@@ -40,6 +40,10 @@
 #include "signals.h"
 #include "span.h"
 
+#if PHP_VERSION_ID >= 70000
+#include "php7/handlers_common.h"
+#endif
+
 bool ddtrace_has_blacklisted_module;
 
 ZEND_DECLARE_MODULE_GLOBALS(ddtrace)
@@ -360,6 +364,11 @@ static PHP_RSHUTDOWN_FUNCTION(ddtrace) {
     }
 
     ddtrace_curl_handlers_rshutdown();
+
+#if PHP_VERSION_ID >= 70000
+    ddtrace_handlers_common_rshutdown();
+#endif
+
     ddtrace_dogstatsd_client_rshutdown(TSRMLS_C);
 
     ddtrace_dispatch_destroy(TSRMLS_C);
