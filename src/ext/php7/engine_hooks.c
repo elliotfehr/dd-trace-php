@@ -84,7 +84,17 @@ static bool _dd_should_trace_helper(zend_execute_data *call, zend_function *fbc,
      *
      * It would avoid lowering the string and reduce memory churn; win-win.
      */
-    *dispatch = ddtrace_find_dispatch(this ? Z_OBJCE_P(this) : fbc->common.scope, &fname);
+    ddtrace_dispatch_t *dis = ddtrace_find_dispatch(this ? Z_OBJCE_P(this) : fbc->common.scope, &fname);
+    if (dis != NULL && Z_TYPE(dis->callable) != IS_OBJECT) {
+        if (dis->options & DDTRACE_DISPATCH_AUTOLOAD) {
+            zval retval;
+            call_user_function(EG(function_table), NULL, &dis->autoload_function_name, &retval, 0 ,NULL);
+			zval_ptr_dtor(&retval);
+            dis = ddtrace_find_dispatch(this ? Z_OBJCE_P(this) : fbc->common.scope, &fname);
+        }
+    }
+    *dispatch = dis;
+
     return *dispatch;
 }
 

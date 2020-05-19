@@ -195,6 +195,8 @@ static void _dd_disable_if_incompatible_sapi_detected(TSRMLS_D) {
 struct ddtrace_known_integration {
     ddtrace_string class_name;  // nullptr if not a class
     ddtrace_string fname;
+    BOOL_T autoload;
+    ddtrace_string autoload_function;
 };
 typedef struct ddtrace_known_integration ddtrace_known_integration;
 
@@ -209,11 +211,31 @@ typedef struct ddtrace_known_integration ddtrace_known_integration;
             .ptr = fname_str,                           \
             .len = sizeof(fname_str) - 1,               \
         },                                              \
+        .autload = FALSE                                \
+    }
+
+#define DDTRACE_AUTLOAD_KNOWN_INTEGRATIONS(class_str, fname_str, autoload_function) \
+    {                                                   \
+        .class_name =                                   \
+            {                                           \
+                .ptr = class_str,                       \
+                .len = sizeof(class_str) - 1,           \
+            },                                          \
+        .fname = {                                      \
+            .ptr = fname_str,                           \
+            .len = sizeof(fname_str) - 1,               \
+        },                                              \
+        .autload = TRUE,                                \
+        .autoload_function = {\
+            .ptr = autoload_function, \
+            .len = sizeof(autoload_function) - 1,\
+        },\
     }
 
 static ddtrace_known_integration ddtrace_known_integrations[] = {
     DDTRACE_KNOWN_INTEGRATION("wpdb", "query"),
     DDTRACE_KNOWN_INTEGRATION("illuminate\\events\\dispatcher", "fire"),
+    DDTRACE_AUTLOAD_KNOWN_INTEGRATIONS("test", "public_static_method", "load_test_integration"),
 };
 
 static void _dd_register_known_calls(void) {
@@ -225,6 +247,9 @@ static void _dd_register_known_calls(void) {
         zval callable;
         ZVAL_NULL(&callable);
         uint32_t options = DDTRACE_DISPATCH_POSTHOOK;
+        if (integration.autoload){
+            options |= DDTRACE_DISPATCH_AUTOLOAD;
+        }
         if (integration.class_name.ptr) {
             ZVAL_STRINGL(&class_name, integration.class_name.ptr, integration.class_name.len);
         } else {

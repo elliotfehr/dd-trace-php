@@ -11,11 +11,13 @@
 #define DDTRACE_DISPATCH_INSTRUMENT_WHEN_LIMITED (1u << 1u)
 #define DDTRACE_DISPATCH_POSTHOOK (1u << 2u)
 #define DDTRACE_DISPATCH_PREHOOK (1u << 3u)
+#define DDTRACE_DISPATCH_AUTOLOAD (1u << 4u)
 
 typedef struct ddtrace_dispatch_t {
     uint32_t options;
     zval callable, function_name;
     zend_bool busy;
+    zval autoload_function_name;
     uint32_t acquired;
 } ddtrace_dispatch_t;
 

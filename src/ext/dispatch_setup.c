@@ -110,6 +110,14 @@ zend_bool ddtrace_trace(zval *class_name, zval *function_name, zval *callable, u
     dispatch.callable = *callable;
     zval_copy_ctor(&dispatch.callable);
     dispatch.options = options;
+    if (options & DDTRACE_DISPATCH_AUTOLOAD) {
+        zval fname;
+        static char *load_test_integration = "load_test_integration";
+
+
+        ZVAL_STRINGL(&fname, load_test_integration, sizeof("load_test_integration")-1);
+        dispatch.autoload_function_name = fname;
+    }
 
 #if PHP_VERSION_ID < 70000
     ZVAL_STRINGL(&dispatch.function_name, Z_STRVAL_P(function_name), Z_STRLEN_P(function_name), 1);
