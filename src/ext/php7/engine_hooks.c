@@ -93,7 +93,7 @@ static bool _dd_should_trace_helper(zend_execute_data *call, zend_function *fbc,
 
             if (Z_TYPE(_dispatch->autoload_function_name) != IS_NULL) {
                 zval retval;
-                call_user_function(EG(function_table), NULL, &_dispatch->autoload_function_name, &retval, 0 ,NULL);
+                call_user_function(EG(function_table), NULL, &_dispatch->autoload_function_name, &retval, 0, NULL);
                 zval_ptr_dtor(&retval);
 
                 // attempt to load newly set dispatch fo function

@@ -111,11 +111,11 @@ static void _initialize_dispatch(ddtrace_dispatch_t *dispatch, zval *function_na
     } else {
         ZVAL_NULL(&dispatch->callable);
     }
-    #if PHP_VERSION_ID < 70000
-        ZVAL_STRINGL(&dispatch->function_name, Z_STRVAL_P(function_name), Z_STRLEN_P(function_name), 1);
-    #else
-        ZVAL_STRINGL(&dispatch->function_name, Z_STRVAL_P(function_name), Z_STRLEN_P(function_name));
-    #endif
+#if PHP_VERSION_ID < 70000
+    ZVAL_STRINGL(&dispatch->function_name, Z_STRVAL_P(function_name), Z_STRLEN_P(function_name), 1);
+#else
+    ZVAL_STRINGL(&dispatch->function_name, Z_STRVAL_P(function_name), Z_STRLEN_P(function_name));
+#endif
     ddtrace_downcase_zval(&dispatch->function_name);  // method/function names are case insensitive in PHP
 
     ZVAL_NULL(&dispatch->autoload_function_name);
@@ -147,11 +147,11 @@ zend_bool ddtrace_autoload_via_function(zval class_name, zval function_name, zva
     }
     ddtrace_dispatch_t dispatch;
     _initialize_dispatch(&dispatch, &function_name, NULL, DDTRACE_DISPATCH_AUTOLOAD);
-    #if PHP_VERSION_ID < 70000
-        ZVAL_STRINGL(&dispatch.autoload_function_name, Z_STRVAL(autoload_function), Z_STRLEN(autoload_function), 1);
-    #else
-        ZVAL_STRINGL(&dispatch.autoload_function_name, Z_STRVAL(autoload_function), Z_STRLEN(autoload_function));
-    #endif
+#if PHP_VERSION_ID < 70000
+    ZVAL_STRINGL(&dispatch.autoload_function_name, Z_STRVAL(autoload_function), Z_STRLEN(autoload_function), 1);
+#else
+    ZVAL_STRINGL(&dispatch.autoload_function_name, Z_STRVAL(autoload_function), Z_STRLEN(autoload_function));
+#endif
 
     if (ddtrace_dispatch_store(overridable_lookup, &dispatch)) {
         return TRUE;

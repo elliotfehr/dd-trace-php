@@ -32,6 +32,7 @@
 #include "dogstatsd_client.h"
 #include "engine_hooks.h"
 #include "handlers_curl.h"
+#include "integrations/autoloaders.h"
 #include "logging.h"
 #include "memory_limit.h"
 #include "random.h"
@@ -207,34 +208,37 @@ typedef struct ddtrace_known_integration ddtrace_known_integration;
                 .ptr = class_str,                       \
                 .len = sizeof(class_str) - 1,           \
             },                                          \
-        .fname = {                                      \
-            .ptr = fname_str,                           \
-            .len = sizeof(fname_str) - 1,               \
-        },                                              \
+        .fname =                                        \
+            {                                           \
+                .ptr = fname_str,                       \
+                .len = sizeof(fname_str) - 1,           \
+            },                                          \
         .autoload = FALSE,                              \
     }
 
 #define DDTRACE_AUTLOAD_KNOWN_INTEGRATIONS(class_str, fname_str, autoload_function_str) \
-    {                                                   \
-        .class_name =                                   \
-            {                                           \
-                .ptr = class_str,                       \
-                .len = sizeof(class_str) - 1,           \
-            },                                          \
-        .fname = {                                      \
-            .ptr = fname_str,                           \
-            .len = sizeof(fname_str) - 1,               \
-        },                                              \
-        .autoload = TRUE,                               \
-        .autoload_function = {                          \
-            .ptr = autoload_function_str,                   \
-            .len = sizeof(autoload_function_str) - 1,       \
-        },                                              \
+    {                                                                                   \
+        .class_name =                                                                   \
+            {                                                                           \
+                .ptr = class_str,                                                       \
+                .len = sizeof(class_str) - 1,                                           \
+            },                                                                          \
+        .fname =                                                                        \
+            {                                                                           \
+                .ptr = fname_str,                                                       \
+                .len = sizeof(fname_str) - 1,                                           \
+            },                                                                          \
+        .autoload = TRUE,                                                               \
+        .autoload_function = {                                                          \
+            .ptr = autoload_function_str,                                               \
+            .len = sizeof(autoload_function_str) - 1,                                   \
+        },                                                                              \
     }
 
 static ddtrace_known_integration ddtrace_known_integrations[] = {
     DDTRACE_KNOWN_INTEGRATION("wpdb", "query"),
     DDTRACE_KNOWN_INTEGRATION("illuminate\\events\\dispatcher", "fire"),
+    DD_AUTOLOADERS(),
     DDTRACE_AUTLOAD_KNOWN_INTEGRATIONS("test", "public_static_method", "load_test_integration"),
 };
 
@@ -255,7 +259,7 @@ static void _dd_register_known_calls(void) {
         }
         ZVAL_STRINGL(&function_name, integration.fname.ptr, integration.fname.len);
 
-        if (integration.autoload){
+        if (integration.autoload) {
             options |= DDTRACE_DISPATCH_AUTOLOAD;
             zval autoload_function;
             ZVAL_STRINGL(&autoload_function, integration.autoload_function.ptr, integration.autoload_function.len);
@@ -516,7 +520,7 @@ static BOOL_T _parse_config_array(zval *config_array, zval **tracing_closure, ui
         } else if (strcmp("prehook", string_key) == 0) {
             ddtrace_log_debugf("'%s' not supported on PHP 5", string_key);
             return FALSE;
-    } else if (strcmp("innerhook", string_key) == 0) {
+        } else if (strcmp("innerhook", string_key) == 0) {
             if (Z_TYPE_PP(value) == IS_OBJECT && instanceof_function(Z_OBJCE_PP(value), zend_ce_closure TSRMLS_CC)) {
                 *tracing_closure = *value;
                 *options |= DDTRACE_DISPATCH_INNERHOOK;
