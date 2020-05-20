@@ -211,10 +211,10 @@ typedef struct ddtrace_known_integration ddtrace_known_integration;
             .ptr = fname_str,                           \
             .len = sizeof(fname_str) - 1,               \
         },                                              \
-        .autload = FALSE                                \
+        .autoload = FALSE,                              \
     }
 
-#define DDTRACE_AUTLOAD_KNOWN_INTEGRATIONS(class_str, fname_str, autoload_function) \
+#define DDTRACE_AUTLOAD_KNOWN_INTEGRATIONS(class_str, fname_str, autoload_function_str) \
     {                                                   \
         .class_name =                                   \
             {                                           \
@@ -225,11 +225,11 @@ typedef struct ddtrace_known_integration ddtrace_known_integration;
             .ptr = fname_str,                           \
             .len = sizeof(fname_str) - 1,               \
         },                                              \
-        .autload = TRUE,                                \
-        .autoload_function = {\
-            .ptr = autoload_function, \
-            .len = sizeof(autoload_function) - 1,\
-        },\
+        .autoload = TRUE,                               \
+        .autoload_function = {                          \
+            .ptr = autoload_function_str,                   \
+            .len = sizeof(autoload_function_str) - 1,       \
+        },                                              \
     }
 
 static ddtrace_known_integration ddtrace_known_integrations[] = {
@@ -247,16 +247,25 @@ static void _dd_register_known_calls(void) {
         zval callable;
         ZVAL_NULL(&callable);
         uint32_t options = DDTRACE_DISPATCH_POSTHOOK;
-        if (integration.autoload){
-            options |= DDTRACE_DISPATCH_AUTOLOAD;
-        }
+
         if (integration.class_name.ptr) {
             ZVAL_STRINGL(&class_name, integration.class_name.ptr, integration.class_name.len);
         } else {
             ZVAL_NULL(&class_name);
         }
         ZVAL_STRINGL(&function_name, integration.fname.ptr, integration.fname.len);
-        ddtrace_trace(&class_name, &function_name, &callable, options);
+
+        if (integration.autoload){
+            options |= DDTRACE_DISPATCH_AUTOLOAD;
+            zval autoload_function;
+            ZVAL_STRINGL(&autoload_function, integration.autoload_function.ptr, integration.autoload_function.len);
+
+            ddtrace_autoload_via_function(class_name, function_name, autoload_function);
+            zval_dtor(&autoload_function);
+        } else {
+            ddtrace_trace(&class_name, &function_name, &callable, options);
+        }
+
         zval_dtor(&function_name);
         zval_dtor(&class_name);
     }
@@ -507,7 +516,7 @@ static BOOL_T _parse_config_array(zval *config_array, zval **tracing_closure, ui
         } else if (strcmp("prehook", string_key) == 0) {
             ddtrace_log_debugf("'%s' not supported on PHP 5", string_key);
             return FALSE;
-        } else if (strcmp("innerhook", string_key) == 0) {
+    } else if (strcmp("innerhook", string_key) == 0) {
             if (Z_TYPE_PP(value) == IS_OBJECT && instanceof_function(Z_OBJCE_PP(value), zend_ce_closure TSRMLS_CC)) {
                 *tracing_closure = *value;
                 *options |= DDTRACE_DISPATCH_INNERHOOK;
