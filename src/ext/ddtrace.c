@@ -265,13 +265,9 @@ static void _dd_register_known_calls(void) {
             ZVAL_STRINGL(&autoload_function, integration.autoload_function.ptr, integration.autoload_function.len);
 
             ddtrace_autoload_via_function(class_name, function_name, autoload_function);
-            zval_dtor(&autoload_function);
         } else {
             ddtrace_trace(&class_name, &function_name, &callable, options);
         }
-
-        zval_dtor(&function_name);
-        zval_dtor(&class_name);
     }
 }
 #endif
