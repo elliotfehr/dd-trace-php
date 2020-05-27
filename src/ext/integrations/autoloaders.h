@@ -8,34 +8,34 @@
                                            "DDTrace\\Integrations\\Curl\\CurlSandboxedIntegration::init"),             \
         DDTRACE_AUTLOAD_KNOWN_INTEGRATIONS(                                                                            \
             "elasticsearch\\client", "__construct",                                                                    \
-            "DDTrace\\Integrations\\ElasticSearch\\V1\\ElasticSearchSandboxedIntegration::traceClientMethod"),         \
+            "DDTrace\\Integrations\\ElasticSearch\\V1\\load"),         \
         DDTRACE_AUTLOAD_KNOWN_INTEGRATIONS(                                                                            \
             "elasticsearch\\client", "count",                                                                          \
-            "DDTrace\\Integrations\\ElasticSearch\\V1\\ElasticSearchSandboxedIntegration::traceClientMethod"),         \
+            "DDTrace\\Integrations\\ElasticSearch\\V1\\load"),         \
         DDTRACE_AUTLOAD_KNOWN_INTEGRATIONS(                                                                            \
             "elasticsearch\\client", "delete",                                                                         \
-            "DDTrace\\Integrations\\ElasticSearch\\V1\\ElasticSearchSandboxedIntegration::traceClientMethod"),         \
+            "DDTrace\\Integrations\\ElasticSearch\\V1\\load"),         \
         DDTRACE_AUTLOAD_KNOWN_INTEGRATIONS(                                                                            \
             "elasticsearch\\client", "exists",                                                                         \
-            "DDTrace\\Integrations\\ElasticSearch\\V1\\ElasticSearchSandboxedIntegration::traceClientMethod"),         \
+            "DDTrace\\Integrations\\ElasticSearch\\V1\\load"),         \
         DDTRACE_AUTLOAD_KNOWN_INTEGRATIONS(                                                                            \
             "elasticsearch\\client", "explain",                                                                        \
-            "DDTrace\\Integrations\\ElasticSearch\\V1\\ElasticSearchSandboxedIntegration::traceClientMethod"),         \
+            "DDTrace\\Integrations\\ElasticSearch\\V1\\load"),         \
         DDTRACE_AUTLOAD_KNOWN_INTEGRATIONS(                                                                            \
             "elasticsearch\\client", "get",                                                                            \
-            "DDTrace\\Integrations\\ElasticSearch\\V1\\ElasticSearchSandboxedIntegration::traceClientMethod"),         \
+            "DDTrace\\Integrations\\ElasticSearch\\V1\\load"),         \
         DDTRACE_AUTLOAD_KNOWN_INTEGRATIONS(                                                                            \
             "elasticsearch\\client", "index",                                                                          \
-            "DDTrace\\Integrations\\ElasticSearch\\V1\\ElasticSearchSandboxedIntegration::traceClientMethod"),         \
+            "DDTrace\\Integrations\\ElasticSearch\\V1\\load"),         \
         DDTRACE_AUTLOAD_KNOWN_INTEGRATIONS(                                                                            \
             "elasticsearch\\client", "scroll",                                                                         \
-            "DDTrace\\Integrations\\ElasticSearch\\V1\\ElasticSearchSandboxedIntegration::traceClientMethod"),         \
+            "DDTrace\\Integrations\\ElasticSearch\\V1\\load"),         \
         DDTRACE_AUTLOAD_KNOWN_INTEGRATIONS(                                                                            \
             "elasticsearch\\client", "search",                                                                         \
-            "DDTrace\\Integrations\\ElasticSearch\\V1\\ElasticSearchSandboxedIntegration::traceClientMethod"),         \
+            "DDTrace\\Integrations\\ElasticSearch\\V1\\load"),         \
         DDTRACE_AUTLOAD_KNOWN_INTEGRATIONS(                                                                            \
             "elasticsearch\\client", "update",                                                                         \
-            "DDTrace\\Integrations\\ElasticSearch\\V1\\ElasticSearchSandboxedIntegration::traceClientMethod"),         \
+            "DDTrace\\Integrations\\ElasticSearch\\V1\\load"),         \
         DDTRACE_AUTLOAD_KNOWN_INTEGRATIONS(                                                                            \
             "elasticsearch\\serializers\\arraytojsonserializer", "serialize",                                          \
             "DDTrace\\Integrations\\ElasticSearch\\V1\\ElasticSearchSandboxedIntegration::traceSimpleMethod"),         \
