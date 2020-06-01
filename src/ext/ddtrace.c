@@ -981,10 +981,13 @@ static PHP_FUNCTION(ddtrace_init) {
     DDTRACE_G(request_init_hook_loaded) = 1;
     if (ddtrace_config_trace_enabled(TSRMLS_C) &&
         zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "s", &dir.ptr, &dir.len) == SUCCESS) {
-        char *init_file = emalloc(dir.len + sizeof("/dd_init.php"));
-        sprintf(init_file, "%s/dd_init.php", dir.ptr);
+        ddtrace_string dd_init = DDTRACE_STRING_LITERAL("/dd_init.php");
+        ALLOCA_FLAG(use_heap)
+        char *init_file = do_alloca(dir.len + dd_init.len + 1, use_heap);
+        memcpy(init_file, dir.ptr, dir.len);
+        memcpy(init_file + dir.len, dd_init.ptr, dd_init.len + 1);
         ret = dd_execute_php_file(init_file TSRMLS_CC);
-        efree(init_file);
+        free_alloca(init_file, use_heap);
     }
 
     if (DDTRACE_G(auto_prepend_file) && DDTRACE_G(auto_prepend_file)[0]) {
