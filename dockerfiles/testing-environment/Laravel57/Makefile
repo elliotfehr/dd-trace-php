@@ -2,7 +2,10 @@
 
 ALL_VERSIONS = 7.3
 
-all: $(addsuffix .laravel57.build,ALL_VERSIONS) $(addsuffix .wp5.build,ALL_VERSIONS)
+all.build: $(addsuffix .laravel57.build,ALL_VERSIONS) $(addsuffix .wp5.build,ALL_VERSIONS)
+	@:
+
+all.publish: $(addsuffix .laravel57.publish,ALL_VERSIONS) $(addsuffix .wp5.publish,ALL_VERSIONS)
 	@:
 
 %.laravel57.build:
